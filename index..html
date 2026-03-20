@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slower Clean Feed Timer</title>
+    <style>
+        :root {
+            --bg-color: #FFFF94; 
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #000; 
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none; 
+            touch-action: manipulation; 
+        }
+
+        /* UPDATED: Made the container take up the whole screen so tapping anywhere works */
+        #timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            flex-grow: 1;
+            z-index: 1; 
+            cursor: pointer; /* Changes mouse to a pointer on desktop to show it's clickable */
+            -webkit-tap-highlight-color: transparent; /* Stops screen flashing gray on tap */
+        }
+
+        #display {
+            font-size: 20vw; 
+            font-weight: bold;
+            color: #000;
+            text-shadow: none;
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* Status Colors */
+        .status-stopped { color: #000 !important; opacity: 1 !important; }
+        .status-finished { color: #000 !important; opacity: 0.15; }
+
+        /* --- CONTROL PANEL STYLING --- */
+        .control-panel {
+            position: fixed;
+            bottom: 30px;
+            background: #ffffff; 
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid #999;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: opacity 0.3s ease;
+            flex-wrap: wrap; 
+        }
+
+        /* Hides the buttons in Full Screen */
+        :fullscreen .control-panel { display: none !important; }
+        :-webkit-full-screen .control-panel { display: none !important; }
+
+        /* Buttons */
+        button {
+            border: none;
+            color: #000; 
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 25px;
+            font-family: sans-serif;
+            transition: transform 0.1s, background 0.2s;
+            text-transform: uppercase;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-start { background-color: #8ae09b; min-width: 100px; }
+        .btn-start:hover { background-color: #6ed182; }
+
+        .btn-stop { background-color: #ff999f; min-width: 100px; }
+        .btn-stop:hover { background-color: #ff757d; }
+
+        .btn-option { background-color: #8abfff; }
+        .btn-option:hover { background-color: #6ba8ff; }
+
+        .btn-dark { background-color: #e0e0e0; font-size: 14px; }
+        .btn-dark:hover { background-color: #cccccc; }
+
+        .btn-reset { background-color: #ffcc33; }
+        .btn-reset:hover { background-color: #f5bc14; }
+
+        .divider { width: 1px; height: 25px; background: #ccc; margin: 0 5px; }
+
+        .instructions {
+            position: fixed;
+            bottom: 5px;
+            color: #000; 
+            font-size: 12px;
+            font-family: sans-serif;
+            opacity: 0.7;
+            text-align: center;
+            width: 100%;
+            pointer-events: none; /* Prevents text from blocking taps */
+        }
+        :fullscreen .instructions { display: none; }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                bottom: 15px;
+                padding: 10px;
+                border-radius: 20px;
+            }
+            button {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            .divider { display: none; } 
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- UPDATED: Added onclick="toggleTimer()" so tapping the big yellow area plays/pauses it -->
+    <div id="timer-container" onclick="toggleTimer()">
+        <div id="display">£100,000</div>
+    </div>
+
+    <div class="control-panel">
+        <button id="toggleBtn" class="btn-start" onclick="toggleTimer()">START</button>
+        <div class="divider"></div>
+        <button class="btn-dark" onclick="manualAdjust(-100)">-100</button>
+        <button class="btn-dark" onclick="manualAdjust(100)">+100</button>
+        <div class="divider"></div>
+        <button class="btn-option" id="modeBtn" onclick="switchDirection()">MODE: DOWN</button>
+        <button class="btn-reset" onclick="resetTimer()">RESET</button>
+        <div class="divider"></div>
+        <button class="btn-dark" onclick="toggleFullScreen()">&#x26F6; FULL SCREEN</button>
+    </div>
+
+    <!-- UPDATED INSTRUCTIONS -->
+    <div class="instructions">In Full Screen, tap the screen or press SPACEBAR to Start/Stop.</div>
+
+    <script>
+        // --- CONFIG ---
+        let currentAmount = 100000;
+        const stepAmount = 100;
+        
+        let isRunning = false;
+        let direction = -1; 
+        
+        let animationFrameId = null;
+        let lastTime = 0;
+        let accumulator = 0; 
+
+        const displayEl = document.getElementById('display');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const modeBtn = document.getElementById('modeBtn');
+
+        function formatMoney(amount) {
+            return '£' + amount.toLocaleString('en-GB');
+        }
+
+        function updateDisplay() {
+            displayEl.textContent = formatMoney(currentAmount);
+            
+            if ((currentAmount === 0 && direction === -1) || (currentAmount === 200000 && direction === 1)) {
+                displayEl.className = 'status-finished';
+            } else if (!isRunning && currentAmount !== 100000 && currentAmount !== 0 && currentAmount !== 200000) {
+                displayEl.className = 'status-stopped';
+            } else {
+                displayEl.className = '';
+            }
+        }
+
+        function timerTick(now) {
+            if (!isRunning) return;
+            if (!now) now = performance.now();
+
+            let delta = now - lastTime;
+            lastTime = now;
+            accumulator += delta;
+            
+            let changed = false;
+
+            while (true) {
+                let currentSpeedMs;
+                if (direction === -1) { 
+                    currentSpeedMs = (currentAmount > 20000) ? 75 : 150; 
+                } else {
+                    currentSpeedMs = (currentAmount < 120000) ? 150 : 75;
+                }
+
+                if (accumulator >= currentSpeedMs) {
+                    accumulator -= currentSpeedMs;
+                    currentAmount += (stepAmount * direction);
+                    changed = true;
+
+                    if (currentAmount <= 0) {
+                        currentAmount = 0;
+                        finishTimer();
+                        return; 
+                    }
+                    if (currentAmount >= 200000) {
+                        currentAmount = 200000;
+                        finishTimer();
+                        return; 
+                    }
+                } else {
+                    break; 
+                }
+            }
+            
+            if (changed) updateDisplay();
+
+            if (isRunning) {
+                animationFrameId = requestAnimationFrame(timerTick);
+            }
+        }
+
+        function finishTimer() {
+            stopTimer();
+            toggleBtn.textContent = "FINISHED";
+            toggleBtn.disabled = true;
+            toggleBtn.className = "btn-dark";
+            updateDisplay();
+        }
+
+        function startTimer() {
+            if (currentAmount <= 0 && direction === -1) return;
+            if (currentAmount >= 200000 && direction === 1) return;
+            
+            isRunning = true;
+            toggleBtn.textContent = "STOP";
+            toggleBtn.className = "btn-stop";
+            
+            lastTime = performance.now();
+            animationFrameId = requestAnimationFrame(timerTick);
+            updateDisplay();
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            
+            if((currentAmount > 0 && direction === -1) || (currentAmount < 200000 && direction === 1)) {
+                toggleBtn.textContent = "RESUME";
+                toggleBtn.className = "btn-start";
+                toggleBtn.disabled = false;
+            }
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            if (isRunning) stopTimer();
+            else startTimer();
+        }
+
+        function manualAdjust(val) {
+            // Prevent event from bubbling up and triggering toggleTimer on the container
+            if(window.event) window.event.stopPropagation();
+            
+            if(isRunning) stopTimer();
+            currentAmount += val;
+            accumulator = 0; 
+            if(currentAmount < 0) currentAmount = 0;
+            if(currentAmount > 200000) currentAmount = 200000;
+            updateDisplay();
+        }
+
+        function switchDirection() {
+            if(window.event) window.event.stopPropagation();
+
+            if(isRunning) stopTimer();
+            direction *= -1;
+            accumulator = 0; 
+            modeBtn.textContent = direction === -1 ? "MODE: DOWN" : "MODE: UP";
+            
+            if ((currentAmount === 0 && direction === 1) || (currentAmount === 200000 && direction === -1) || (currentAmount !== 0 && currentAmount !== 200000)) {
+                toggleBtn.textContent = "START";
+                toggleBtn.className = "btn-start";
+                toggleBtn.disabled = false;
+            }
+            updateDisplay();
+        }
+
+        function resetTimer() {
+            if(window.event) window.event.stopPropagation();
+
+            stopTimer();
+            currentAmount = 100000;
+            direction = -1;
+            accumulator = 0;
+            modeBtn.textContent = "MODE: DOWN";
+            toggleBtn.textContent = "START";
+            toggleBtn.className = "btn-start";
+            toggleBtn.disabled = false;
+            displayEl.className = '';
+            updateDisplay();
+        }
+
+        function toggleFullScreen() {
+            if(window.event) window.event.stopPropagation();
+
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Fullscreen not supported on this device.");
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') {
+                e.preventDefault();
+                toggleTimer();
+            }
+            if (e.code === 'ArrowRight') manualAdjust(100);
+            if (e.code === 'ArrowLeft') manualAdjust(-100);
+        });
+
+        // Ensure button clicks inside the control panel don't accidentally trigger the background tap
+        document.querySelector('.control-panel').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
