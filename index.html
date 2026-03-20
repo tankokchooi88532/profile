@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name '98 - Interactive</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="desktop">
+        <!-- Desktop Icons -->
+        <div class="icon-group">
+            <div class="icon" onclick="openWindow('personal-window')">
+                <img src="https://win98icons.alexmeub.com/icons/png/directory_closed-4.png">
+                <span>My Documents</span>
+            </div>
+            <div class="icon" onclick="window.open('https://linkedin.com', '_blank')">
+                <img src="https://win98icons.alexmeub.com/icons/png/world-4.png">
+                <span>LinkedIn</span>
+            </div>
+        </div>
+
+        <!-- The Draggable Window -->
+        <div id="personal-window" class="window draggable">
+            <div class="title-bar" id="personal-header">
+                <div class="title-bar-text">File Explorer - Personal</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize" onclick="minimizeWindow('personal-window')"></button>
+                    <button aria-label="Maximize"></button>
+                    <button aria-label="Close" onclick="closeWindow('personal-window')"></button>
+                </div>
+            </div>
+            
+            <div class="window-menu">
+                <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span>
+            </div>
+
+            <div class="window-body">
+                <div class="sidebar">
+                    <img src="https://win98icons.alexmeub.com/icons/png/directory_closed-4.png" width="50">
+                    <p><b>Personal</b><br>1 item(s)</p>
+                </div>
+                <div class="folder-content">
+                    <div class="file">
+                        <img src="https://win98icons.alexmeub.com/icons/png/file_lines-0.png">
+                        <span>Bio.txt</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Menu (Hidden by default) -->
+    <div id="start-menu" class="start-menu hidden">
+        <div class="start-sidebar"><b>Windows</b>98</div>
+        <div class="start-item">Documents</div>
+        <div class="start-item">Settings</div>
+        <div class="start-item" onclick="location.reload()">Shut Down...</div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar">
+        <button class="start-button" onclick="toggleStartMenu()">
+            <img src="https://win98icons.alexmeub.com/icons/png/windows_slanted-1.png" width="16">
+            Start
+        </button>
+        <div id="task-tab" class="active-task hidden" onclick="openWindow('personal-window')">
+            <img src="https://win98icons.alexmeub.com/icons/png/directory_closed-4.png" width="14">
+            Personal
+        </div>
+        <div class="spacer"></div>
+        <div class="tray"><span id="clock">12:00 PM</span></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
