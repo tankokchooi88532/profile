@@ -1,0 +1,176 @@
+/* Custom Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    overflow-x: hidden;
+}
+
+/* Nav Bar - Sticky & Transparent */
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: 30px 0;
+    transition: 0.5s;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.logo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 8px;
+    font-weight: 700;
+}
+
+.social-icons a {
+    color: #fff;
+    margin-right: 20px;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+/* Hero Section - The "Big Photo" */
+.hero-section {
+    height: 100vh;
+    background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.6)), 
+                url('hero-bg.jpg') no-repeat center center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.main-title {
+    font-size: 6rem;
+    font-weight: 900;
+    letter-spacing: 20px;
+    margin: 0;
+}
+
+.album-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    letter-spacing: 5px;
+}
+
+.btn-outline {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 15px 40px;
+    border: 1px solid #fff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    transition: 0.4s;
+}
+
+.btn-outline:hover {
+    background: #fff;
+    color: #000;
+}
+
+/* Sections Styling */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 20px;
+}
+
+.section-label {
+    text-align: center;
+    font-size: 2.5rem;
+    letter-spacing: 12px;
+    margin-bottom: 60px;
+    font-weight: 300;
+}
+
+/* Tour Rows */
+.tour-row {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    padding: 25px 0;
+    border-bottom: 1px solid #222;
+    align-items: center;
+}
+
+.t-date { font-weight: 700; color: #888; letter-spacing: 2px; }
+.t-venue { letter-spacing: 2px; font-size: 0.9rem; }
+.t-btn a {
+    border: 1px solid #fff;
+    padding: 8px 20px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.7rem;
+}
+
+/* Newsletter Section */
+.newsletter-section {
+    background: #111;
+    text-align: center;
+    padding: 80px 0;
+}
+
+.newsletter-section h3 {
+    letter-spacing: 5px;
+    margin-bottom: 30px;
+}
+
+.signup-form input {
+    background: transparent;
+    border: 1px solid #444;
+    padding: 15px;
+    width: 300px;
+    color: #fff;
+    outline: none;
+}
+
+.signup-form button {
+    background: #fff;
+    border: none;
+    padding: 15px 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Footer */
+footer {
+    padding: 100px 0;
+    text-align: center;
+    border-top: 1px solid #222;
+}
+
+.footer-logo {
+    letter-spacing: 10px;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 0.7rem;
+}
+
+.copyright {
+    margin-top: 40px;
+    font-size: 0.6rem;
+    color: #444;
+    letter-spacing: 2px;
+}
